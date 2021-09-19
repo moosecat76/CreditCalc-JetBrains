@@ -7,38 +7,6 @@
 import sys
 import argparse
 from math import ceil, floor, log
-args = sys.argv
-
-parser = argparse.ArgumentParser(description='Process some integers.')
-
-parser.add_argument('-t', '--type', choices=['diff', 'annuity'], required=True,
-                    help='options are diff, annuity')
-parser.add_argument('-p', '--principal', type=int, required=True,
-                    help='the loan principal')
-parser.add_argument('-n', '--periods', type=int,
-                    help='denotes the number of months needed to repay the loan')
-parser.add_argument('-i', '--interest', type=float, required=True,
-                    help='annual interest rate')
-if parser.parse_known_args()[0].type.lower() == 'annuity':
-    parser.add_argument('-a', '--payment', type=float,
-                    help='the monthly annuity payment amount and only available with the annuity calculation')
-# TODO: requirement to check if at least 4 args
-
-
-def repayments(p, n):
-    settlement = ''
-    # calculate payment amounts (and settlement payment)
-    # payments = principal // number_of_months + additional month if required to settle
-    r = int(p / n)
-    is_float = bool(p % n)
-    if is_float:
-        r += 1
-    if r * n > p:
-        s = p - (r * (n - 1))
-        if s:
-            settlement = ' and the last payment = {}'.format(s)
-    r = 'Your monthly payment = {}{}.'.format(r, settlement)
-    return r
 
 
 def differentiated_payments(p, i, n):
@@ -69,29 +37,9 @@ def principal(a, i, n):
 
 
 def get_interest():
-    a = float(input("Enter the loan interest:")) / 100
-    i = a / 12
+        a = float(input("Enter the loan interest:")) / 100
+        i = a / 12
     return i
-
-
-def get_principal():
-    p = int(input("Enter the loan principal:"))
-    return p
-
-
-def get_monthly_payments():
-    m = int(input("Enter the monthly payment:"))
-    return m
-
-
-def get_no_periods():
-    n = int(input("Enter the number of periods:"))
-    return n
-
-
-def get_annuity():
-    a = float(input("Enter the annuity payment:"))
-    return a
 
 
 def get_years_months(n):
@@ -120,34 +68,58 @@ def get_years_months(n):
     return message
 
 
-calc_question = """What do you want to calculate?
-                type "n" for number of monthly payments,
-                type "a" for annuity monthly payment amount,
-                type "p" for loan principal:"""
-
-calculation = input(calc_question)
-
-# "n" for number of monthly payments
-if calculation == "n":
-    principal = get_principal()
-    annuity_payments = get_monthly_payments()
-    interest = get_interest()
-    no_repayments = no_repayments(principal, interest, annuity_payments)
-    print(get_years_months(no_repayments))
-# "a" for annuity monthly payment amount
-elif calculation == "a":
-    principal = get_principal()
-    periods = get_no_periods()
-    interest = get_interest()
-    annuity = annuity(principal, interest, periods)
-    print('Your monthly payment = {}!'.format(annuity))
-# "p" for loan principal:
-elif calculation == "p":
-    annuity = get_annuity()
-    periods = get_no_periods()
-    interest = get_interest()
-    principal = principal(annuity, interest, periods)
-    print('Your loan principal = {}!'.format(principal))
+# main
 
 
+
+def main():
+    parser = argparse.ArgumentParser(description='Process some integers.')
+
+    parser.add_argument('-t', '--type', choices=['diff', 'annuity'], required=True,
+                        help='options are diff, annuity')
+    parser.add_argument('-p', '--principal', type=int, required=True,
+                        help='the loan principal')
+    parser.add_argument('-n', '--periods', type=int,
+                        help='denotes the number of months needed to repay the loan')
+    parser.add_argument('-i', '--interest', type=float, required=True,
+                        help='annual interest rate')
+    parser.add_argument('-a', '--payment', type=float,
+                        help='the monthly annuity payment amount and only available with the annuity calculation')
+
+    args = parser.parse_args()
+    if len(args) < 3:
+        print(f"Too few options {}".len(args))
+        exit(1)
+
+    calculation = args.type
+    interest = args.interest
+    principal = args.principal
+    periods = args.periods
+
+    if calculation == "diff":
+
+
+        print(get_years_months(no_repayments))
+    # "a" for annuity monthly payment amount
+    elif calculation == "annuity":
+        annuity = annuity(principal, interest, periods)
+        print('Your monthly payment = {}!'.format(annuity))
+
+
+
+# TODO Remove if not required
+"""def repayments(p, n):
+    settlement = ''
+    # calculate payment amounts (and settlement payment)
+    # payments = principal // number_of_months + additional month if required to settle
+    r = int(p / n)
+    is_float = bool(p % n)
+    if is_float:
+        r += 1
+    if r * n > p:
+        s = p - (r * (n - 1))
+        if s:
+            settlement = ' and the last payment = {}'.format(s)
+    r = 'Your monthly payment = {}{}.'.format(r, settlement)
+    return r"""
 
