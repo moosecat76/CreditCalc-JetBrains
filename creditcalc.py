@@ -36,12 +36,6 @@ def principal(a, i, n):
     return p
 
 
-def get_interest():
-        a = float(input("Enter the loan interest:")) / 100
-        i = a / 12
-    return i
-
-
 def get_years_months(n):
     months = ''
     years = ''
@@ -97,7 +91,7 @@ def main():
     periods = args.periods
 
     if calculation == "diff":
-
+        differentiated_payments(principal, i, n)
 
         print(get_years_months(no_repayments))
     # "a" for annuity monthly payment amount
