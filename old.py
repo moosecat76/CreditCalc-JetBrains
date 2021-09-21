@@ -4,7 +4,7 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 # write your code here
-import sys
+"""import sys
 from math import ceil, floor, log
 args = sys.argv
 
@@ -129,7 +129,7 @@ elif calculation == "p":
     periods = get_no_periods()
     interest = get_interest()
     principal = principal(annuity, interest, periods)
-    print('Your loan principal = {}!'.format(principal))
+    print('Your loan principal = {}!'.format(principal))"""
 
 
 

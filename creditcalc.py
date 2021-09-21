@@ -1,28 +1,31 @@
-# This is a sample Python script.
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-import sys
 import argparse
 from math import ceil, floor, log
 
 
-def differentiated_payments(p, i, n):
-    d = []
-    for m in range(n):
-        d[m] = p/n + i * (p - ((p * (m - 1)) / n))
-    return d
-
-
 def annuity(p, i, n):
-    a = p * i * pow((1 + i), n) / (pow((1 + i), n) - 1)
-    a = ceil(a)
+    a = {}
+    i = get_interest(i)
+    a['payments'] = p * i * pow((1 + i), n) / (pow((1 + i), n) - 1)
+    a['payments'] = ceil(a['payments'])
+    t = n * a['payments']
+    a['overpayment'] = t - p
     return a
 
 
+def differentiated_payments(p, i, n):
+    d = {}
+    t = 0
+    i = get_interest(i)
+    for m in range(1, n+1):
+        d[m] = ceil(p/n + (i * (p - ((p * (m - 1)) / n))))
+        t += d[m]
+    d['overpayment'] = t - p
+    return d
+
+
 def no_repayments(p, i, a):
+    i = get_interest(i)
     base = 1 + i
     x = (a / (a - i * p))
     n = log(x, base)
@@ -31,12 +34,25 @@ def no_repayments(p, i, a):
 
 
 def principal(a, i, n):
+    i = get_interest(i)
     p = a / (i * pow((1 + i), n) / (pow((1 + i), n) - 1))
     p = floor(p)
     return p
 
 
-def get_years_months(n):
+def calc_overpayment(p, a, n):
+    t = n * a
+    overpayment = t - p
+    return ceil(overpayment)
+
+
+def get_interest(i):
+    a = float(i) / 100
+    i = a / 12
+    return i
+
+
+def format_years_months(n):
     months = ''
     years = ''
     y = n // 12
@@ -62,58 +78,75 @@ def get_years_months(n):
     return message
 
 
+def format_diff_payments(d):
+    message = ''
+    for m, value in d.items():
+        if m != "overpayment":
+            message = "{}\nMonth {}: payment is {}".format(message, m, value)
+    message += '\n'
+    return message
+
+
+def format_overpayment(overpayment):
+    message = 'Overpayment = {}'.format(overpayment)
+    return message
+
+
 # main
-
-
-
 def main():
     parser = argparse.ArgumentParser(description='Process some integers.')
 
     parser.add_argument('-t', '--type', choices=['diff', 'annuity'], required=True,
                         help='options are diff, annuity')
-    parser.add_argument('-p', '--principal', type=int, required=True,
+    parser.add_argument('-p', '--principal', type=int,
                         help='the loan principal')
     parser.add_argument('-n', '--periods', type=int,
                         help='denotes the number of months needed to repay the loan')
-    parser.add_argument('-i', '--interest', type=float, required=True,
+    parser.add_argument('-i', '--interest', type=float, # required=True, this would be more useful
                         help='annual interest rate')
     parser.add_argument('-a', '--payment', type=float,
                         help='the monthly annuity payment amount and only available with the annuity calculation')
 
     args = parser.parse_args()
-    if len(args) < 3:
-        print(f"Too few options {}".len(args))
-        exit(1)
-
     calculation = args.type
-    interest = args.interest
-    principal = args.principal
-    periods = args.periods
+    interest_arg = args.interest
+    principal_arg = args.principal
+    periods_arg = args.periods
+    payment_arg = args.payment  # a - Annuity
 
     if calculation == "diff":
-        differentiated_payments(principal, i, n)
-
-        print(get_years_months(no_repayments))
+        if principal_arg is not None \
+        and interest_arg is not None \
+        and periods_arg is not None:  # Minimum requirements
+            diff = differentiated_payments(principal_arg, interest_arg, periods_arg)
+            print(format_diff_payments(diff))
+            print(format_overpayment(diff['overpayment']))
+        else:
+            print("Incorrect parameters.")
     # "a" for annuity monthly payment amount
     elif calculation == "annuity":
-        annuity = annuity(principal, interest, periods)
-        print('Your monthly payment = {}!'.format(annuity))
+        if principal_arg is not None \
+                and periods_arg is not None \
+                and interest_arg is not None:  # Have principal - calc annuity payments
+            ann = annuity(principal_arg, interest_arg, periods_arg)
+            print('Your monthly payment = {}!'.format(ann['payments']))
+            print(format_overpayment(ann['overpayment']))
+        elif principal_arg is not None \
+                and interest_arg is not None \
+                and payment_arg is not None:  # No Periods - calc periods
+            periods_arg = no_repayments(principal_arg, interest_arg, payment_arg)
+            overpayment = calc_overpayment(principal_arg, payment_arg, periods_arg)
+            print(format_years_months(periods_arg))
+            print(format_overpayment(overpayment))
+        elif payment_arg is not None \
+                and interest_arg is not None \
+                and periods_arg is not None:  # No Principal - calc principal
+            principal_arg = principal(payment_arg, interest_arg, periods_arg)
+            ann = annuity(principal_arg, interest_arg, periods_arg)
+            print("Your loan principal = {}!".format(principal_arg))
+            print(format_overpayment(ann['overpayment']))
+        else:
+            print("Incorrect parameters.")
 
 
-
-# TODO Remove if not required
-"""def repayments(p, n):
-    settlement = ''
-    # calculate payment amounts (and settlement payment)
-    # payments = principal // number_of_months + additional month if required to settle
-    r = int(p / n)
-    is_float = bool(p % n)
-    if is_float:
-        r += 1
-    if r * n > p:
-        s = p - (r * (n - 1))
-        if s:
-            settlement = ' and the last payment = {}'.format(s)
-    r = 'Your monthly payment = {}{}.'.format(r, settlement)
-    return r"""
-
+main()
